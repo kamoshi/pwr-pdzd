@@ -34,7 +34,8 @@ echo " -> output in ./docker/"
 echo "Processing editions"
 gzip -cd data/editions.txt.gz | 
   cut -f5 |
-  jq -c 'select(has("authors") and has("works"))' \
+  jq -c 'select(has("authors") and has("works"))' |
+  head -n 100000 \
   > docker/editions.txt
 
 echo "Processing authors"
