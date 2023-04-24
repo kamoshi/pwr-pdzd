@@ -36,9 +36,10 @@ gzip -cd data/authors.txt.gz | cut -f5 | head -n 20 > docker/authors.txt
 
 gzip -cd data/works.txt.gz | cut -f5 | # Filter works
   jq '(reduce $authors[] as $obj ({}; .[$obj.key] = true)) as $set
-    | select(.authors != null)
+    | select(has("authors"))
     | select(all(.; .authors[].author.key | in($set)))' \
-  --slurpfile authors ./docker/authors.txt > docker/works.txt 2>/dev/null
+  --slurpfile authors ./docker/authors.txt \
+  > docker/works.txt
 
 gzip -cd data/editions.txt.gz | cut -f5 | head -n 10 > docker/editions.txt
 
