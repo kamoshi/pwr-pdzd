@@ -2,8 +2,6 @@
 mkdir -p data
 
 ### POBIERANIE DANYCH ###
-echo "DOWNLOAD LOG:" > data/download.log
-
 if [ ! -f data/authors.txt.gz ]; then
   echo "# Authors:" >> data/download.log
   wget --progress=dot:giga -O data/authors.txt.gz https://openlibrary.org/data/ol_dump_authors_latest.txt.gz >> data/download.log 2>&1
@@ -28,11 +26,8 @@ fi
 
 ### WSTĘPNA OBRÓBKA ###
 
-if [ ! -f data/authors.txt ]; then
-  echo "Extracting authors."
-  gunzip data/authors.txt.gz 
-else
-  echo "Authors already extracted"
-fi
+gzip -cd data/authors.txt | cut -f5 | head -n 10000 > docker/authors.txt
+gzip -cd data/works.txt | cut -f5 | head -n 10000 > docker/works.txt
+gzip -cd data/editions.txt | cut -f5 | head -n 10000 > docker/editions.txt
 
-cat data/authors.txt | cut -f5 | head -n 10000 > docker/authors.txt
+### PRZESŁANIE DO HDFS
