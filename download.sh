@@ -33,24 +33,20 @@ echo "PROCESSING DATA"
 echo "output in ./docker/"
 
 echo "Processing authors"
-gzip -cd data/authors.txt.gz | cut -f5 | head -n 20 > docker/authors.txt
+gzip -cd data/authors.txt.gz | cut -f5 | head -n 1000 > docker/authors.txt
 
 echo "Processing works"
 gzip -cd data/works.txt.gz | cut -f5 | # Filter works
-  jq -c '.
-    | (reduce $authors[] as $obj ({}; .[$obj.key] = true)) as $authorIds
-    | select(has("authors"))
-    | select(all(.; .authors[].author.key | in($authorIds)))' \
+  jq -c '(reduce $authors[] as $obj ({}; .[$obj.key] = true)) as $authorIds
+    | select(has("authors") and all(.; .authors[].author.key | in($authorIds)))' \
   --slurpfile authors ./docker/authors.txt \
   > docker/works.txt
 
 echo "Processing editions"
 gzip -cd data/editions.txt.gz | cut -f5 | # Filter editions
-  jq -c '.
-    | (reduce $authors[] as $obj ({}; .[$obj.key] = true)) as $authorIds
+  jq -c '(reduce $authors[] as $obj ({}; .[$obj.key] = true)) as $authorIds
     | (reduce $works[] as $obj ({}; .[$obj.key] = true)) as $workIds
-    | select(has("authors") and has("works"))
-    | select(all(.; .authors[].key | in($authorIds)) and all(.; .works[].key | in($workIds)))' \
+    | select(has("authors") and has("works") and all(.; .authors[].key | in($authorIds)) and all(.; .works[].key | in($workIds)))' \
   --slurpfile authors ./docker/authors.txt \
   --slurpfile works ./docker/works.txt \
   > docker/works.txt
