@@ -2,7 +2,7 @@
 set -e
 mkdir -p data
 
-### POBIERANIE DANYCH ###
+
 echo "DOWNLOADING DATA"
 echo "check download log for errors"
 
@@ -28,27 +28,27 @@ else
 fi
 
 
-### WSTĘPNA OBRÓBKA ###
 echo "PROCESSING DATA"
-echo "output in ./docker/"
-
-echo "Processing authors"
-gzip -cd data/authors.txt.gz | cut -f5 | head -n 200000 > docker/authors.txt
-
-echo "Processing works"
-gzip -cd data/works.txt.gz | cut -f5 | # Filter works
-  jq -c '(reduce $authors[] as $obj ({}; .[$obj.key] = true)) as $authorIds
-    | select(has("authors") and all(.; .authors[].author.key | in($authorIds)))' \
-  --slurpfile authors ./docker/authors.txt \
-  > docker/works.txt
+echo " -> output in ./docker/"
 
 echo "Processing editions"
-gzip -cd data/editions.txt.gz | cut -f5 | # Filter editions
-  jq -c '(reduce $authors[] as $obj ({}; .[$obj.key] = true)) as $authorIds
-    | (reduce $works[] as $obj ({}; .[$obj.key] = true)) as $workIds
-    | select(has("authors") and has("works") and all(.; .authors[].key | in($authorIds)) and all(.; .works[].key | in($workIds)))' \
-  --slurpfile authors ./docker/authors.txt \
-  --slurpfile works ./docker/works.txt \
+gzip -cd data/editions.txt.gz | 
+  cut -f5 |
+  jq -c 'select(has("authors") and has("works"))' \
   > docker/editions.txt
+
+echo "Processing authors"
+gzip -cd data/authors.txt.gz | cut -f5 |
+  jq -c '(reduce $editions[] as $edition ({}; reduce $edition.authors[] as $author (.; .[$author.key] = true))) as $authors
+    | select(.key | in($authors))' \
+    --slurpfile editions ./docker/editions.txt \
+  > docker/authors.txt
+
+echo "Processing works"
+gzip -cd data/works.txt.gz | cut -f5 |
+  jq -c '(reduce $editions[] as $edition ({}; reduce $edition.works[] as $work (.; .[$work.key] = true))) as $works
+    | select(.key | in($works))' \
+    --slurpfile editions ./docker/editions.txt \
+  > docker/works.txt
 
 echo "FINISHED"
