@@ -32,8 +32,15 @@ fi
 echo "PROCESSING DATA"
 echo "output in ./docker/"
 
-gzip -cd data/authors.txt | cut -f5 | head -n 200000 > docker/authors.txt
-gzip -cd data/works.txt | cut -f5 | head -n 100000 > docker/works.txt
-gzip -cd data/editions.txt | cut -f5 | head -n 100000 > docker/editions.txt
+gzip -cd data/authors.txt.gz | cut -f5 | head -n 20 > docker/authors.txt
+
+gzip -cd data/works.txt.gz | cut -f5 | # Filter works
+  jq '(reduce $authors[] as $obj ({}; .[$obj.key] = true)) as $set
+    | select(.authors != null)
+    | select(all(.; .authors[].author.key | in($set)))' \
+  --slurpfile authors ./docker/authors.txt > docker/works.txt 2>/dev/null
+
+gzip -cd data/editions.txt.gz | cut -f5 | head -n 10 > docker/editions.txt
+
 
 echo "FINISHED"
