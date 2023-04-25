@@ -1,2 +1,4 @@
 data/
 docker/
+.idea/
+target/

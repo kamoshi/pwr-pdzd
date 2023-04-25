@@ -38,18 +38,18 @@ gzip -cd data/editions.txt.gz |
   head -n 100000 \
   > docker/editions.txt
 
-echo "Processing authors"
-gzip -cd data/authors.txt.gz | cut -f5 |
-  jq -c '(reduce $editions[] as $edition ({}; reduce $edition.authors[] as $author (.; .[$author.key] = true))) as $authors
-    | select(.key | in($authors))' \
-    --slurpfile editions ./docker/editions.txt \
-  > docker/authors.txt
+# echo "Processing authors"
+# gzip -cd data/authors.txt.gz | cut -f5 |
+#   jq -c '(reduce $editions[] as $edition ({}; reduce $edition.authors[] as $author (.; .[$author.key] = true))) as $authors
+#     | select(.key | in($authors))' \
+#     --slurpfile editions ./docker/editions.txt \
+#   > docker/authors.txt
 
-echo "Processing works"
-gzip -cd data/works.txt.gz | cut -f5 |
-  jq -c '(reduce $editions[] as $edition ({}; reduce $edition.works[] as $work (.; .[$work.key] = true))) as $works
-    | select(.key | in($works))' \
-    --slurpfile editions ./docker/editions.txt \
-  > docker/works.txt
+# echo "Processing works"
+# gzip -cd data/works.txt.gz | cut -f5 |
+#   jq -c '(reduce $editions[] as $edition ({}; reduce $edition.works[] as $work (.; .[$work.key] = true))) as $works
+#     | select(.key | in($works))' \
+#     --slurpfile editions ./docker/editions.txt \
+#   > docker/works.txt
 
 echo "FINISHED"
