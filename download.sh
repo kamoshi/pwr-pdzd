@@ -2,7 +2,7 @@
 set -e
 mkdir -p data
 
-### POBIERANIE DANYCH ###
+
 echo "DOWNLOADING DATA"
 echo "check download log for errors"
 
@@ -28,12 +28,28 @@ else
 fi
 
 
-### WSTĘPNA OBRÓBKA ###
 echo "PROCESSING DATA"
-echo "output in ./docker/"
+echo " -> output in ./docker/"
 
-gzip -cd data/authors.txt | cut -f5 | head -n 200000 > docker/authors.txt
-gzip -cd data/works.txt | cut -f5 | head -n 100000 > docker/works.txt
-gzip -cd data/editions.txt | cut -f5 | head -n 100000 > docker/editions.txt
+echo "Processing editions"
+gzip -cd data/editions.txt.gz | 
+  cut -f5 |
+  jq -c 'select(has("authors") and has("works"))' |
+  head -n 100000 \
+  > docker/editions.txt
+
+# echo "Processing authors"
+# gzip -cd data/authors.txt.gz | cut -f5 |
+#   jq -c '(reduce $editions[] as $edition ({}; reduce $edition.authors[] as $author (.; .[$author.key] = true))) as $authors
+#     | select(.key | in($authors))' \
+#     --slurpfile editions ./docker/editions.txt \
+#   > docker/authors.txt
+
+# echo "Processing works"
+# gzip -cd data/works.txt.gz | cut -f5 |
+#   jq -c '(reduce $editions[] as $edition ({}; reduce $edition.works[] as $work (.; .[$work.key] = true))) as $works
+#     | select(.key | in($works))' \
+#     --slurpfile editions ./docker/editions.txt \
+#   > docker/works.txt
 
 echo "FINISHED"
